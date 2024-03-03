@@ -1,15 +1,11 @@
-import React, {useEffect, useReducer, useState} from 'react'
-import { H1 } from './ui/H1'
-import { exmp } from '../data/exp'
-import { Pencil, Trash2 } from 'lucide-react'
-import { AddModal } from './AddModal'
-import { useForm } from 'react-hook-form'
-import {v4 as uuidv4} from 'uuid'
+import React, { useEffect, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 import { getIcon } from '../lib/utils'
+import { AddModal } from './AddModal'
 import { ConfirmationModal } from './ConfirmationModal'
-import EditModal from './EditModal';
-import { format } from 'date-fns'
-
+import EditModal from './EditModal'
+import Transactions from './Transactions'
+import { H1 } from './ui/H1'
 export const Expenses = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -99,18 +95,18 @@ useEffect(() => {
   return (
 
     <main className=''>
-      <div className='flex flex-col text-center justify-center p-6'>
+      <div className='flex flex-col justify-center p-6 text-center'>
         <H1>Expenses</H1>
-        <div className='flex flex-row gap-2 justify-center mt-8'>
-          <input type='text' placeholder='Search Expenses' onChange={handleSearchChange} className='w-10/12 sm:w-72 p-2text-gray-700 bg-gray-200 rounded-xl'/>
-          <button onClick={() => setIsModalOpen({...isModalOpen, add:true})}  className="bg-red-lite hover:bg-red-lite-hover text-white font-bold p-2 rounded-xl">Add Expenses</button>
+        <div className='flex flex-row justify-center gap-2 mt-8'>
+          <input type='text' placeholder='Search Expenses' onChange={handleSearchChange} className='w-10/12 bg-gray-200 sm:w-72 p-2text-gray-700 rounded-xl'/>
+          <button onClick={() => setIsModalOpen({...isModalOpen, add:true})}  className="p-2 font-bold text-white bg-red-lite hover:bg-red-lite-hover rounded-xl">Add Expenses</button>
         </div>
-      <div className="flex justify-center items-center rounded-lg pt-4">
-        <button className="bg-red-lite hover:bg-red-lite-hover text-white font-bold py-2 px-4 rounded-lg" onClick={goToPreviousMonth}>{'<'}</button>
-        <span className="text-xl font-bold mx-4 text-white">
+      <div className="flex items-center justify-center pt-4 rounded-lg">
+        <button className="px-4 py-2 font-bold text-white rounded-lg bg-red-lite hover:bg-red-lite-hover" onClick={goToPreviousMonth}>{'<'}</button>
+        <span className="mx-4 text-xl font-bold text-white">
         {new Date(currentYear, currentMonth).toLocaleDateString('default', { month: 'long', year: 'numeric' })}
         </span>
-        <button className="bg-red-lite hover:bg-red-lite-hover text-white font-bold py-2 px-4 rounded-lg" onClick={goToNextMonth}>{'>'}</button>
+        <button className="px-4 py-2 font-bold text-white rounded-lg bg-red-lite hover:bg-red-lite-hover" onClick={goToNextMonth}>{'>'}</button>
         <button
             onClick={() => setShowAll(!showAll)}
             className={`bg-blue-500 hover:bg-blue-700 text-white font-bold ml-4  py-2 px-4 rounded-xl ${showAll ? 'bg-opacity-50' : ''}`}
@@ -119,33 +115,30 @@ useEffect(() => {
         </button>
       </div>
       <div className="flex justify-center mt-12">
-        <div className="bg-green-500 rounded-full px-4 py-2 flex items-center">
-        <p className="text-white font-bold text-sm">Total:</p>
-        <p className="text-white font-bold ml-2">${totalAmount.toFixed(2)}</p>
+        <div className="flex items-center px-4 py-2 bg-green-500 rounded-full">
+        <p className="text-sm font-bold text-white">Total:</p>
+        <p className="ml-2 font-bold text-white">${totalAmount.toFixed(2)}</p>
         </div>
       </div>
       </div>
 
-      <div className="flex justify-center flex-wrap gap-6 m-2">
-        {filteredExpenses?.map((expense) => (
-        <div key={expense.id} className=" group w-full max-w-sm p-6 m-3 text-center text-white shadow-lg hover:-translate-y-1 hover: hover:scale-100 shadow-red-lite/50 bg-gray-500/10  rounded-2xl hover:shadow-black/40 xl:w-full lg:w-11/12  sm:m-0 sm:mb-4">
-           <div className='flex justify-end gap-2'>
-                <Pencil onClick={() => editExpense(expense)}  className='cursor-pointer h-5 w-5 text-sky-400' />
-                <Trash2 onClick={() => {
-                  setSelectedExpense(expense);
-                  setIsConfirmationModalOpen(true);
-                }}  className='cursor-pointer h-5 w-5 text-red-500' />
-            </div>
-            <h3 className='text-xl font-semibold text-center'>{expense.title}</h3>
-            <p className='group-hover:text-red-lite group-hover:text-4xl mt-10 mb-10 flex-grow text-3xl font-bold text-center'>${(+expense.amount).toFixed(2)}</p>
-            <div className='flex justify-between items-center'>
-              <p className='text-gray-500'>{format(expense.date, 'dd/MM/yyyy')}</p>
-              <span className='text-end'>{getIcon(expense.rating)}</span>
-            </div>
-            
-          </div>
-        ))}
-    </div>
+      <div className="flex flex-wrap justify-center gap-6 m-2">
+  {filteredExpenses.length > 0 ? (
+    filteredExpenses.map((expense) => (
+      <Transactions
+        key={expense.id}
+        item={expense}
+        editItem={editExpense}
+        setSelectedItem={setSelectedExpense}
+        setIsConfirmationModalOpen={setIsConfirmationModalOpen}
+        getIcon={getIcon}
+      />
+    ))
+  ) : (
+    <div className="text-xl text-center text-white">No results found.</div>
+  )}
+</div>
+
     {isModalOpen.add ? (
               <AddModal
               setIsModalOpen={setIsModalOpen} 
@@ -174,11 +167,7 @@ useEffect(() => {
     initialValues={selectedExpense}
     // Ensure you pass all other required props to EditModal
   />
-)}
-
-
-
-      
+)}   
     </main>
   )
 }
